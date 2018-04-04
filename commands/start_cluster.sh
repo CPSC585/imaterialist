@@ -1,0 +1,1 @@
+nvidia-docker run -d -v /var/tmp/kaggle/iMaterialist:/workspace cpsc585/cluster
