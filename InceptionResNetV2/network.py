@@ -17,7 +17,7 @@ class Network(object):
         x = Dense(512, activation='relu')(x)
         output_tensor = Dense(128, activation='softmax')(x)
         for layer in init_model.layers:
-			layer.trainable = False;
+			layer.trainable = False
         model = Model(init_model.input, output_tensor)
 		
         return model
