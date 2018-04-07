@@ -16,8 +16,8 @@ class Network(object):
         x = GlobalAveragePooling2D()(x)
         x = Dense(512, activation='relu')(x)
         output_tensor = Dense(128, activation='softmax')(x)
-        for layers in init_model.layers:
-			layers.trainable = False;
+        for layer in init_model.layers:
+			layer.trainable = False;
         model = Model(init_model.input, output_tensor)
 		
         return model
