@@ -93,7 +93,7 @@ if __name__ == '__main__':
     network_model = options.model.Network(options)
     network = network_model.get_network()
     network.summary()
-
+    sys.exit()
     # Get data iterators
     if options.aug_params:
         train_dataiter = get_std_iterator(**options.aug_params)
@@ -103,10 +103,10 @@ if __name__ == '__main__':
     
     # Create Generators
     train_generator = train_dataiter.flow_from_directory(
-        options.train_path, seed=options.seed, class_mode='categorical',  color_mode='rbg',
+        options.train_path, seed=options.seed, class_mode='categorical',  color_mode='rgb',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=True)
     val_generator = train_dataiter.flow_from_directory(
-        options.val_path, seed=options.seed, class_mode='categorical', color_mode='rbg',
+        options.val_path, seed=options.seed, class_mode='categorical', color_mode='rgb',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=False)
 
     # Callbacks
