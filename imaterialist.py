@@ -93,7 +93,7 @@ if __name__ == '__main__':
     network_model = options.model.Network(options)
     network = network_model.get_network()
     network.summary()
-    sys.exit()
+
     # Get data iterators
     if options.aug_params:
         train_dataiter = get_std_iterator(**options.aug_params)
