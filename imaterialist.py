@@ -2,11 +2,11 @@ from __future__ import print_function
 import os
 import sys
 import datetime
-import yaml
 sys.path.insert(0, 'src')
 import argparse
 from keras.utils import plot_model
-from utils import exists, importmod, create_paths
+from utils import exists, importmod, create_paths, check_opts
+from utils import setup_paths, read_aug_params, read_freeze_layers
 from iterators import get_std_iterator
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TerminateOnNaN, TensorBoard
 
@@ -51,10 +51,6 @@ def build_parser():
                         dest='batch_size', help='batch size',
                         metavar='BATCH_SIZE', default=BATCH_SIZE)
 
-    parser.add_argument('--num-gpus', type=int,
-                        dest='num_gpus', help='batch size',
-                        metavar='num_gpus', default=NUM_GPUS)
-
     parser.add_argument('--optimizer', type=str,
                         dest='optimizer',
                         help='all Keras optimizers',
@@ -65,38 +61,18 @@ def build_parser():
                         help='a yaml dictionary the defines the augmentation kwargs',
                         default=None)
 
+    parser.add_argument('--unfreeze-layers', type=str,
+                        dest='unfreeze_layers',
+                        help='a text file with names (one per line) of all layers that should NOT be frozen. \
+                              Unspecified layers will be frozen. If None all layers will be unfrozen',
+                        default=None)
+
     parser.add_argument('--seed', type=int,
                         dest='seed',
                         help="random number seed",
                         default="2018")
     return parser
 
-
-def check_convert_opts(opts):
-    assert opts.epochs > 0
-    assert opts.batch_size > 0
-    assert opts.num_gpus > 0
-    assert opts.learning_rate >= 0
-    assert opts.lr_mult > 0
-    opts.model = importmod(opts.model, "Model {} does not exist!".format(opts.model))
-
-def setup_paths(opts):
-    # TODAY.strftime("%d-%b-%Y")
-    opts.output_path = os.path.join(BASE_OUTPUT_DIR, opts.model,
-                                    "lr{}_ep{}_bs{}_opt{}_s{}".format(opts.learning_rate, opts.epochs,
-                                                                      opts.batch_size, opts.optimizer, opts.seed))
-    opts.log_path = os.path.join(opts.output_path, 'logs')
-    opts.log_file = os.path.join(opts.log_path, 'train.csv')
-    opts.tf_log_path = os.path.join(opts.output_path, 'tf_logs')
-    create_paths(opts)
-    return opts
-
-def read_aug_params(opts):
-    if opts.aug_params:
-        with open(opts.aug_params, 'r') as stream:
-            data_loaded = yaml.load(stream)
-            opts.aug_params = data_loaded
-    return opts
 
 def train(opts):
     pass
@@ -106,16 +82,24 @@ if __name__ == '__main__':
     # parse options and setup paths
     parser = build_parser()
     options = parser.parse_args()
-    options = setup_paths(options)
+    # Create output directory
+    options = setup_paths(options, BASE_OUTPUT_DIR)
+    # Read augmentation parameters
     options = read_aug_params(options)
-    check_convert_opts(options)
+    # Read freeze/unfreeze layer information
+    options = read_freeze_layers(options)
+    # Check validity of options
+    check_opts(options)
     # Get model, net, iterators
-    network_model = options.model.Network()
+    network_model = options.model.Network(options)
     network = network_model.get_network()
     network.summary()
 
     # Get data iterators
-    train_dataiter = get_std_iterator(**options.aug_params)
+    if options.aug_params:
+        train_dataiter = get_std_iterator(**options.aug_params)
+    else:
+        train_dataiter = get_std_iterator()
     val_dataiter = get_std_iterator()
     
     # Create Generators
@@ -127,10 +111,10 @@ if __name__ == '__main__':
         batch_size=options.batch_size, target_size=(448, 448), shuffle=False)
 
     # Callbacks
-
     callbacks_list = [
         ModelCheckpoint(
-            filepath = os.path.join(options.output_path, "model.h5"),
+            filepath=os.path.join(options.output_path,
+                                  "weights.{epoch:02d}-{val_loss:.2f}.hdf5"),
             save_best_only=True,
             monitor='val_loss'
         ),
@@ -160,7 +144,9 @@ if __name__ == '__main__':
                     metrics=['accuracy', 'categorical_accuracy'])
     
     network.fit_generator(train_generator,
+                          steps_per_epoch=190000//options.batch_size,
                           epochs=options.epochs,
                           validation_data=val_generator,
+                          validation_steps=6245//options.batch_size,
                           callbacks=callbacks_list,
                           verbose=1)
