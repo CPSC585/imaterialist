@@ -4,21 +4,19 @@ from keras import layers, Input
 from keras.models import Model
 
 class Network(object):
-    def __init__(self, **kwargs): 
-        pass
+    def __init__(self, kwargs):
+        self.unfreeze_layers = kwargs.unfreeze_layers
     
     def get_network(self):
         input_tensor = Input(shape=(448, 448, 1, ))
-        x = layers.Conv2D(32, kernel_size=(3, 3), activation='relu')(input_tensor)
-        x = layers.MaxPooling2D(pool_size=(3, 3))(x)
-        x = layers.Conv2D(64, kernel_size=(3, 3), activation='relu')(x)
-        x = layers.MaxPooling2D(pool_size=(3, 3))(x)
-        x = layers.Conv2D(64, kernel_size=(3, 3), activation='relu')(x)
-        x = layers.MaxPooling2D(pool_size=(3, 3))(x)
+        x = layers.Conv2D(32, kernel_size=(3, 3), activation='relu', name="conv1")(input_tensor)
+        x = layers.MaxPooling2D(pool_size=(3, 3), name='maxpool1')(x)
+        x = layers.Conv2D(64, kernel_size=(3, 3), activation='relu', name='conv2')(x)
+        x = layers.MaxPooling2D(pool_size=(3, 3), name='maxpool2')(x)
         x = layers.Dropout(0.25)(x)
         x = layers.Flatten()(x)
-        x = layers.Dense(128, activation='relu')(x)
+        x = layers.Dense(128, activation='relu', name='dense1')(x)
         x = layers.Dropout(0.5)(x)
-        output_tensor = layers.Dense(128, activation="softmax")(x)
+        output_tensor = layers.Dense(128, activation="softmax", name='output')(x)
         model  = Model(input_tensor, output_tensor)
         return model
