@@ -12,7 +12,7 @@ from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, Termi
 
 
 LEARNING_RATE = 1e-3
-NUM_EPOCHS = 10
+NUM_EPOCHS = 60
 BATCH_SIZE = 32
 NUM_GPUS = 1
 OPTIMIZER='nadam'
