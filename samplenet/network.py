@@ -8,7 +8,7 @@ class Network(object):
         self.unfreeze_layers = kwargs.unfreeze_layers
     
     def get_network(self):
-        input_tensor = Input(shape=(448, 448, 1, ))
+        input_tensor = Input(shape=(448, 448, 3, ))
         x = layers.Conv2D(32, kernel_size=(3, 3), activation='relu', name="conv1")(input_tensor)
         x = layers.MaxPooling2D(pool_size=(3, 3), name='maxpool1')(x)
         x = layers.Conv2D(64, kernel_size=(3, 3), activation='relu', name='conv2')(x)
