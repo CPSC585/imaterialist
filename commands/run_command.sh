@@ -3,7 +3,7 @@ set -e
 
 function show_usage() {
     echo ""
-    echo "Usage: $(basename $0) --gpu=<GPU> COMMANDS"
+    echo "Usage: $(basename $0) COMMANDS"
     echo ""
     echo "   COMMANDS: any linux command"
     echo ""
@@ -21,7 +21,7 @@ function main () {
         exit -1
     fi
 
-    NV_GPU=$gpu CUDA_VISIBLE_DEVICES=$gpu nvidia-docker run -u $(id -u "AD\vkrishnamani"):$(id -g "AD\vkrishnamani") cpsc585/train $@
+    docker run -v $(pwd):/workspace -u $(id -u "AD\vkrishnamani"):$(id -g "AD\vkrishnamani") cpsc585/train $@
 }
 
 if (( $# < 1 )); then

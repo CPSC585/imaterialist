@@ -25,7 +25,7 @@ function main () {
     CONTAINER=$(docker images | grep "cpsc585/train" | awk '{print $3}')
     GPUS=${gpu-1}
     shift;
-    NV_GPU=$GPUS nvidia-docker run -v $(pwd):/workspace $CONTAINER $@
+    NV_GPU=$GPUS nvidia-docker run -u $(id -u "AD\vkrishnamani"):$(id -g "AD\vkrishnamani") -v $(pwd):/workspace $CONTAINER $@
 }
 
 if (( $# < 1 )); then
