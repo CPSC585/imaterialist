@@ -15,8 +15,7 @@ LEARNING_RATE = 1e-3
 NUM_EPOCHS = 10
 BATCH_SIZE = 32
 NUM_GPUS = 1
-LR_MULT = 1e-3
-OPTIMIZER='adam'
+OPTIMIZER='nadam'
 BASE_OUTPUT_DIR = "trained_models"
 TODAY = datetime.date.today()
 
@@ -104,10 +103,10 @@ if __name__ == '__main__':
     
     # Create Generators
     train_generator = train_dataiter.flow_from_directory(
-        options.train_path, seed=options.seed, class_mode='categorical',  color_mode='grayscale',
+        options.train_path, seed=options.seed, class_mode='categorical',  color_mode='rbg',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=True)
     val_generator = train_dataiter.flow_from_directory(
-        options.val_path, seed=options.seed, class_mode='categorical', color_mode='grayscale',
+        options.val_path, seed=options.seed, class_mode='categorical', color_mode='rbg',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=False)
 
     # Callbacks
