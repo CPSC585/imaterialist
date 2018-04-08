@@ -40,9 +40,7 @@ def read_freeze_layers(opts):
 
 def setup_paths(opts, base_dir):
     # TODAY.strftime("%d-%b-%Y")
-    opts.output_path = os.path.join(base_dir, opts.model,
-                                    "lr{}_ep{}_bs{}_opt-{}_s{}".format(opts.learning_rate, opts.epochs,
-                                                                      opts.batch_size, opts.optimizer, opts.seed))
+    opts.output_path = os.path.join(base_dir, opts.model, "opt-{}_s{}".format(opts.optimizer, opts.seed))
     opts.log_path = os.path.join(opts.output_path, 'logs')
     opts.log_file = os.path.join(opts.log_path, 'train.csv')
     opts.tf_log_path = os.path.join(opts.output_path, 'tf_logs')
