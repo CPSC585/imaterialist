@@ -17,10 +17,12 @@ class Network(object):
         x = GlobalAveragePooling2D()(x)
         x = Dense(512, activation='relu')(x)
         output_tensor = Dense(128, activation='softmax')(x)
-        
-        for layer in init_model.layers:
-            if layer.name in arr:
-                layer.trainable = False
+		
+        #freezing the layers which are not specified in the arr
+        if arr.size > 0:
+            for layer in init_model.layers:
+                if not layer.name in arr:
+                    layer.trainable = False
             
         model = Model(init_model.input, output_tensor)
         return model
