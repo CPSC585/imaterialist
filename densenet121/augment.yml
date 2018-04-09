@@ -1,5 +1,3 @@
-featurewise_center: False
-featurewise_std_normalization: False
 samplewise_center: True
 samplewise_std_normalization: True
 zca_whitening: False
