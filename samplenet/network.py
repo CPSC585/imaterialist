@@ -11,7 +11,7 @@ class Network(object):
     
     def get_network(self):
         base_model = ResNet50(weights='imagenet', include_top=False)
-        input_tensor = Input(shape=(448, 448, 1, ))
+        input_tensor = Input(shape=(448, 448, 3 ))
         final = base_model(input_tensor)
         
         
