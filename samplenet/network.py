@@ -12,8 +12,10 @@ class Network(object):
     def get_network(self):
         base_model = ResNet50(weights='imagenet', include_top=False)
         input_tensor = Input(shape=(448, 448, 1, ))
-        model = base_model(input_tensor)
-        x = layers.Conv2D(32, kernel_size=(3, 3), activation='relu')(input_tensor)
+        final = base_model(input_tensor)
+        
+        
+        x = layers.Conv2D(32, kernel_size=(3, 3), activation='relu')(final)
         x = layers.MaxPooling2D(pool_size=(3, 3))(x)
         x = layers.Conv2D(64, kernel_size=(3, 3), activation='relu')(x)
         x = layers.MaxPooling2D(pool_size=(3, 3))(x)
@@ -25,4 +27,9 @@ class Network(object):
         x = layers.Dropout(0.5)(x)
         output_tensor = layers.Dense(128, activation="softmax")(x)
         model  = Model(input_tensor, output_tensor)
-        print( model.summary())
+        return model
+        
+        
+        
+        
+    
