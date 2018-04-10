@@ -5,8 +5,8 @@ from keras.models import Model
 from keras.applications.vgg16 import VGG16
 
 class Network(object):
-    def __init__(self, **kwargs): 
-        pass
+    def __init__(self, kwargs):
+        self.unfreeze_layers = kwargs.unfreeze_layers
     
     def get_network(self):
         model = VGG16(include_top=False, weights='imagenet', input_shape=(224, 224, 3), pooling='avg')
@@ -14,6 +14,4 @@ class Network(object):
         x = layers.Dense(4096, activation='relu')(x)
         x = layers.Dropout(0.5)(x)
         output_tensor = layers.Dense(1000, activation="softmax")(x)
-            
-        model  = Model(model.input, output_tensor)
-        return model
+        return Model(model.input, output_tensor)
