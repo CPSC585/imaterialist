@@ -9,9 +9,9 @@ class Network(object):
         self.unfreeze_layers = kwargs.unfreeze_layers
     
     def get_network(self):
-        model = VGG16(include_top=False, weights='imagenet', input_shape=(224, 224, 3), pooling='avg')
+        model = VGG16(include_top=False, weights='imagenet', input_shape=(448, 448, 3), pooling='avg')
         x = model.output
         x = layers.Dense(4096, activation='relu')(x)
         x = layers.Dropout(0.5)(x)
-        output_tensor = layers.Dense(1000, activation="softmax")(x)
+        output_tensor = layers.Dense(128, activation="softmax")(x)
         return Model(model.input, output_tensor)
