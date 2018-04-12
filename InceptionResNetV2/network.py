@@ -7,7 +7,7 @@ from keras.layers import Dense, GlobalAveragePooling2D
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 
 class Network(object):
-    def __init__(self, **kwargs): 
+    def __init__(self): 
         pass
     
     def get_network(self, options):
@@ -24,6 +24,6 @@ class Network(object):
             for layer in init_model.layers:
                 if not layer.name in options.unfreeze_layers:
                     layer.trainable = False
-                    
+
         model = Model(init_model.input, output_tensor)
         return model

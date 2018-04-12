@@ -5,8 +5,8 @@ from keras.models import Model
 from keras.applications.xception import Xception
 
 class Network(object):
-    def __init__(self, kwargs):
-        self.unfreeze_layers = kwargs.unfreeze_layers
+    def __init__(self):
+        pass
     
     def get_network(self, options):
         model = Xception(include_top=False, input_shape=(448, 448, 3))

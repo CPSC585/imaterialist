@@ -74,7 +74,7 @@ def check_opts(opts, log):
         log.info("Validation Data: {}".format(opts.val_path))
 
 
-def import_model(opts, log):
+def import_model(opts):
     opts.model = importmod(opts.model, "Model {} does not exist!".format(opts.model))
 
 

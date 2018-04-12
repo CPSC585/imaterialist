@@ -89,9 +89,9 @@ if __name__ == '__main__':
     # Check if previously run models exist
     saved_models = get_saved_models(options)
     # Get model
-    import_model(options, logging)
+    import_model(options)
     network_model = options.model.Network()
-    logging.debug("Creating a new model {}".format(options.model))
+    logging.debug("Creating model: {}".format(options.model))
     network = network_model.get_network(options)
     if saved_models:
         # Get the best saved model
