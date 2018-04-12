@@ -121,7 +121,7 @@ if __name__ == '__main__':
     callbacks_list = [
         ModelCheckpoint(
             filepath=os.path.join(options.output_path,
-                                  "weights.{epoch:02d}-val_loss.{val_loss:.2f}.hdf5"),
+                                  "weights_epoch={epoch:02d}-val_loss={val_loss:.2f}.hdf5"),
             save_best_only=True,
             monitor='val_loss'
         ),

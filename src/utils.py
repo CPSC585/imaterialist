@@ -81,6 +81,6 @@ def import_model(opts):
 def get_saved_models(opts):
     files = []
     if os.path.exists(opts.output_path):
-        files = glob.glob(os.path.join(opts.output_path, 'weights.*.hdf5'))
-        files.sort(key=lambda x: float(os.path.basename(x).split("-")[1].replace(".hdf5", "")))
+        files = glob.glob(os.path.join(opts.output_path, '*.hdf5'))
+        files.sort(key=lambda x: float(os.path.basename(x).split("-")[1].replace(".hdf5", "").replace("val_loss=", "")))
         return files
