@@ -17,6 +17,7 @@ class Network(object):
         x = init_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(512, activation='relu')(x)
+        x = layers.Dropout(0.5)(x)
         output_tensor = Dense(128, activation='softmax')(x)
 		
         #freezing the layers which are not specified in the arr
