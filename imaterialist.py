@@ -1,21 +1,22 @@
 from __future__ import print_function
+import logging
 import os
 import sys
 import datetime
 sys.path.insert(0, 'src')
 import argparse
 from keras.utils import plot_model
-from utils import exists, importmod, create_paths, check_opts
-from utils import setup_paths, read_aug_params, read_freeze_layers
+from keras.models import load_model
+from utils import exists, create_paths, check_opts, import_model
+from utils import setup_paths, read_aug_params, read_freeze_layers, get_saved_models
 from iterators import get_std_iterator
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TerminateOnNaN, TensorBoard
-
 
 LEARNING_RATE = 1e-3
 NUM_EPOCHS = 60
 BATCH_SIZE = 32
 NUM_GPUS = 1
-OPTIMIZER='nadam'
+OPTIMIZER='nadam' #rmsprop
 BASE_OUTPUT_DIR = "trained_models"
 TODAY = datetime.date.today()
 
@@ -36,11 +37,6 @@ def build_parser():
                         dest='model',
                         help='string path to the Keras model',
                         required=True)
-
-    parser.add_argument('--learning-rate', type=float,
-                        dest='learning_rate',
-                        help='learning rate (default %(default)s)',
-                        metavar='LEARNING_RATE', default=LEARNING_RATE)
 
     parser.add_argument('--epochs', type=int,
                         dest='epochs', help='num epochs',
@@ -82,19 +78,30 @@ if __name__ == '__main__':
     parser = build_parser()
     options = parser.parse_args()
     # Create output directory
-    options = setup_paths(options, BASE_OUTPUT_DIR)
-    # Read augmentation parameters
-    options = read_aug_params(options)
-    # Read freeze/unfreeze layer information
-    options = read_freeze_layers(options)
+    options = setup_paths(options, BASE_OUTPUT_DIR, logging)
+    logging.basicConfig(filename=os.path.join(options.log_path, 'train.log'), level=logging.DEBUG)
     # Check validity of options
-    check_opts(options)
-    # Get model, net, iterators
-    network_model = options.model.Network(options)
-    network = network_model.get_network()
+    check_opts(options, logging)
+    # Read augmentation parameters
+    options = read_aug_params(options, logging)
+    # Read freeze/unfreeze layer information
+    options = read_freeze_layers(options, logging)
+    # Check if previously run models exist
+    saved_models = get_saved_models(options)
+    network = None
+    if saved_models:
+        # Get the best saved model
+        logging.debug("Restarting training from saved model {}".format(saved_models[0]))
+        network = load_model(saved_models[0])
+    else:
+        # Get model, net, iterators
+        import_model(options, logging)
+        network_model = options.model.Network()
+        network = network_model.get_network(options)
     network.summary()
 
     # Get data iterators
+    logging.info("Creating data iterators for Training and Validation Datasets")
     if options.aug_params:
         train_dataiter = get_std_iterator(**options.aug_params)
     else:
@@ -105,15 +112,17 @@ if __name__ == '__main__':
     train_generator = train_dataiter.flow_from_directory(
         options.train_path, seed=options.seed, class_mode='categorical',  color_mode='rgb',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=True)
-    val_generator = train_dataiter.flow_from_directory(
+    
+    val_generator = val_dataiter.flow_from_directory(
         options.val_path, seed=options.seed, class_mode='categorical', color_mode='rgb',
         batch_size=options.batch_size, target_size=(448, 448), shuffle=False)
 
     # Callbacks
+    logging.info("Setting up Callbacks")
     callbacks_list = [
         ModelCheckpoint(
             filepath=os.path.join(options.output_path,
-                                  "weights.{epoch:02d}-{val_loss:.2f}.hdf5"),
+                                  "weights.{epoch:02d}-val_loss.{val_loss:.2f}.hdf5"),
             save_best_only=True,
             monitor='val_loss'
         ),
@@ -137,11 +146,12 @@ if __name__ == '__main__':
         ),
         TerminateOnNaN(),
     ]
-
+    logging.info("Compiling Model...")
     network.compile(optimizer=options.optimizer,
                     loss='categorical_crossentropy',
                     metrics=['accuracy', 'categorical_accuracy'])
     
+    logging.info("Training Model...")
     network.fit_generator(train_generator,
                           steps_per_epoch=190000//options.batch_size,
                           epochs=options.epochs,
@@ -149,3 +159,4 @@ if __name__ == '__main__':
                           validation_steps=6245//options.batch_size,
                           callbacks=callbacks_list,
                           verbose=1)
+    logging.info("Finished Training!")

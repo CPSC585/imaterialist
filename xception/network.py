@@ -8,7 +8,7 @@ class Network(object):
     def __init__(self, kwargs):
         self.unfreeze_layers = kwargs.unfreeze_layers
     
-    def get_network(self):
+    def get_network(self, options):
         model = Xception(include_top=False, input_shape=(448, 448, 3))
         x = model.output
         x = layers.GlobalAveragePooling2D()(x)
