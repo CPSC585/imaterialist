@@ -21,7 +21,7 @@ class Network(object):
         output_tensor = Dense(128, activation='softmax')(x)
 		
         #freezing the layers which are not specified in the arr
-        if len(options.unfreeze_layers) > 0:
+        if options.unfreeze_layers:
             for layer in init_model.layers:
                 if not layer.name in options.unfreeze_layers:
                     layer.trainable = False
