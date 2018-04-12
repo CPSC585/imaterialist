@@ -62,7 +62,6 @@ def check_opts(opts, log):
     log.info("Number of Epochs: {}".format(opts.epochs))
     assert opts.batch_size > 0
     log.info("Batch Size: {}".format(opts.batch_size))
-    assert opts.learning_rate >= 0
     if not os.path.isdir(opts.train_path):
         log.error("Train path {} does not exist!".format(opts.train_path))
         raise IOError("Train path {} does not exist!".format(opts.train_path))
