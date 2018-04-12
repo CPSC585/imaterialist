@@ -88,16 +88,15 @@ if __name__ == '__main__':
     options = read_freeze_layers(options, logging)
     # Check if previously run models exist
     saved_models = get_saved_models(options)
-    network = None
+    # Get model
+    import_model(options, logging)
+    network_model = options.model.Network()
+    logging.debug("Creating a new model {}".format(options.model))
+    network = network_model.get_network(options)
     if saved_models:
         # Get the best saved model
         logging.debug("Restarting training from saved model {}".format(saved_models[0]))
-        network = load_model(saved_models[0])
-    else:
-        # Get model, net, iterators
-        import_model(options, logging)
-        network_model = options.model.Network()
-        network = network_model.get_network(options)
+        network.load_weights(saved_models[0])    
     network.summary()
 
     # Get data iterators
