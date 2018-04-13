@@ -101,12 +101,8 @@ if __name__ == '__main__':
 
     # Get data iterators
     logging.info("Creating data iterators for Training and Validation Datasets")
-    if options.aug_params:
-        train_dataiter = get_std_iterator(**options.aug_params)
-    else:
-        train_dataiter = get_std_iterator()
-    val_dataiter = get_std_iterator()
-    
+    train_dataiter = get_std_iterator(options.aug_params)
+    val_dataiter = get_std_iterator({})
     # Create Generators
     train_generator = train_dataiter.flow_from_directory(
         options.train_path, seed=options.seed, class_mode='categorical',  color_mode='rgb',
