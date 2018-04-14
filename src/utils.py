@@ -2,6 +2,7 @@ from __future__ import print_function
 import os
 import glob
 import yaml
+from shutil import copyfile
 import importlib
 
 
@@ -23,33 +24,64 @@ def create_paths(opts):
     if not os.path.exists(opts.tf_log_path):
         os.makedirs(opts.tf_log_path)
 
+def _read_aug_params(path):
+    with open(path, 'r') as stream:
+        data_loaded = yaml.load(stream)
+    return data_loaded
 
-def read_aug_params(opts, log):
-    if opts.aug_params:
-        log.debug("Loading Following Augmentation Parameters...")
-        with open(opts.aug_params, 'r') as stream:
-            data_loaded = yaml.load(stream)
-            opts.aug_params = data_loaded
-            for key, value in opts.aug_params.iteritems():
-                log.info("param {}: {}".format(key, value))
+
+def read_val_aug_params(opts, log):
+    path = os.path.join(opts.model, 'augment.yml')
+    if os.path.exists(path) and opts.aug_val:
+        copyfile(path, os.path.join(opts.output_path, os.path.basename(path)))
+        log.debug("Loading Validation Augmentation Parameters...")
+        opts.val_aug_params = _read_aug_params(path)
+        for key, value in opts.val_aug_params.iteritems():
+            log.info("Validation augmentation param -- {}: {}".format(key, value))
     else:
-        log.warn("NO Augmentation, parameters not found!")
+        opts.val_aug_params = {}
+        log.warn("NO Validation Augmentation.")
     return opts
 
 
-def read_freeze_layers(opts, log):
-    if opts.unfreeze_layers:
-        log.debug("Un-Freezing All Layers Except...")
-        with open(opts.unfreeze_layers, 'r') as f:
+def read_train_aug_params(opts, log):
+    path = os.path.join(opts.model, 'augment.yml')
+    if os.path.exists(path) and opts.aug_train:
+        copyfile(path, os.path.join(opts.output_path, os.path.basename(path)))
+        log.debug("Loading Train Augmentation Parameters...")
+        opts.train_aug_params = _read_aug_params(path)
+        for key, value in opts.train_aug_params.iteritems():
+            log.info("Train augmentation param -- {}: {}".format(key, value))
+    else:
+        opts.train_aug_params = {}
+        log.warn("NO Train Augmentation.")
+    return opts
+
+
+def read_unfreeze_layers(opts, log):
+    path = os.path.join(opts.model, 'unfreeze_layers')
+    if opts.freeze_layers and os.path.exists(path):
+        copyfile(path, os.path.join(opts.output_path, os.path.basename(path)))
+        with open(path, 'r') as f:
             opts.unfreeze_layers = f.readlines()
-            for l in opts.unfreeze_layers:
-                log.info(l)
+            opts.unfreeze_layers = map(lambda s: s.strip(), opts.unfreeze_layers)
+    elif opts.freeze_layers and not os.path.exists(path):
+        log.warn("Specified freezing layers but no file with information about freeze layers found! All Layers are Trainable.")
     return opts
 
 
 def setup_paths(opts, base_dir, log):
     # TODAY.strftime("%d-%b-%Y")
-    opts.output_path = os.path.join(base_dir, opts.model, "opt-{}_s{}".format(opts.optimizer, opts.seed))
+    name = "opt-{}_s-{}".format(opts.optimizer, opts.seed)
+    if opts.aug_train:
+        name += "_aug_train"
+    if opts.aug_val:
+        name += "_aug_val"
+    if opts.pretrained:
+        name += "_pretrained"
+    if opts.freeze_layers and os.path.exists(os.path.join(opts.model, 'unfreeze_layers')):
+        name += "_partly_frozen"
+    opts.output_path = os.path.join(base_dir, opts.model, name)
     opts.log_path = os.path.join(opts.output_path, 'logs')
     opts.log_file = os.path.join(opts.log_path, 'train.csv')
     opts.tf_log_path = os.path.join(opts.output_path, 'tf_logs')

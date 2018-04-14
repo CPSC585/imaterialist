@@ -7,8 +7,8 @@ sys.path.insert(0, 'src')
 import argparse
 from keras.utils import plot_model
 from keras.models import load_model
-from utils import exists, create_paths, check_opts, import_model
-from utils import setup_paths, read_aug_params, read_freeze_layers, get_saved_models
+from utils import exists, create_paths, check_opts, import_model, read_val_aug_params
+from utils import setup_paths, read_train_aug_params, read_unfreeze_layers, get_saved_models
 from iterators import get_std_iterator
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, TerminateOnNaN, TensorBoard
 
@@ -51,21 +51,33 @@ def build_parser():
                         help='all Keras optimizers',
                         metavar='OPTIMIZER', default=OPTIMIZER)
     
-    parser.add_argument('--aug-params', type=str,
-                        dest='aug_params',
-                        help='a yaml dictionary the defines the augmentation kwargs',
-                        default=None)
+    parser.add_argument('--pretrained',
+                        dest='pretrained',
+                        help='will load pretrained weights from imagenet',
+                        default=False)
 
-    parser.add_argument('--unfreeze-layers', type=str,
-                        dest='unfreeze_layers',
-                        help='a text file with names (one per line) of all layers that should NOT be frozen. \
-                              Unspecified layers will be frozen. If None all layers will be unfrozen',
-                        default=None)
+    parser.add_argument('--aug-val',
+                        dest='aug_val',
+                        action='store_true',
+                        help='augment validation images',
+                        default=False)
+    
+    parser.add_argument('--aug-train',
+                        dest='aug_train',
+                        action='store_true',
+                        help='augment train images',
+                        default=False)
+
+    parser.add_argument('--freeze-layers',
+                        dest='freeze_layers',
+                        action='store_true',
+                        help='unfreeze layers specified in unfreeze_layers file in each network implementation, while freezing everything else',
+                        default=False)
 
     parser.add_argument('--seed', type=int,
                         dest='seed',
                         help="random number seed",
-                        default="2018")
+                        default="1977")
     return parser
 
 
@@ -83,21 +95,27 @@ if __name__ == '__main__':
     # Check validity of options
     check_opts(options, logging)
     # Read augmentation parameters
-    options = read_aug_params(options, logging)
+    options = read_train_aug_params(options, logging)
+    options = read_val_aug_params(options, logging)
     # Read freeze/unfreeze layer information
-    options = read_freeze_layers(options, logging)
+    options = read_unfreeze_layers(options, logging)
     # Check if previously run models exist
     saved_models = get_saved_models(options)
     # Get model
     import_model(options)
     network_model = options.model.Network()
     logging.debug("Creating model: {}".format(options.model))
+    if options.pretrained:
+        logging.info("Loading Pretrained Weights from Imagenet")
     network = network_model.get_network(options)
     if saved_models:
         # Get the best saved model
         logging.debug("Restarting training from saved model {}".format(saved_models[0]))
         network.load_weights(saved_models[0])    
     network.summary()
+    logging.info("--- Network ---")
+    for l in network.layers:
+        logging.info("{} (Trainable = {})".format(l.name, l.trainable))
 
     # Get data iterators
     logging.info("Creating data iterators for Training and Validation Datasets")

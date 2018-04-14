@@ -9,8 +9,19 @@ class Network(object):
         pass
     
     def get_network(self, options):
-        model = DenseNet121(include_top=False, input_shape=(448, 448, 3))
+        if options.pretrained:
+            model = model = DenseNet121(include_top=False, input_shape=(448, 448, 3), weights='imagenet')
+        else:
+            model = DenseNet121(include_top=False, input_shape=(448, 448, 3))
         x = model.output
         x = layers.GlobalAveragePooling2D()(x)
         output = layers.Dense(128, activation='softmax', name='output')(x)
+        
+        if options.freeze_layers:
+            for layer in model.layers:
+                if any(map(layer.name.startswith, options.unfreeze_layers)):
+                    layer.trainable = True
+                else:
+                    layer.trainable = False
+
         return Model(model.input, output)
