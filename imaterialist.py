@@ -53,6 +53,7 @@ def build_parser():
     
     parser.add_argument('--pretrained',
                         dest='pretrained',
+                        action='store_true',
                         help='will load pretrained weights from imagenet',
                         default=False)
 
