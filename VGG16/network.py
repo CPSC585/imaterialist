@@ -4,8 +4,8 @@ from keras.models import Model
 from keras.applications.vgg16 import VGG16
 
 class Network(object):
-    def __init__(self, kwargs):
-        self.unfreeze_layers = kwargs.unfreeze_layers
+    def __init__(self):
+        pass
     
     def get_network(self, options):
         if options.pretrained:
