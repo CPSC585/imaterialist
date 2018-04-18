@@ -32,3 +32,4 @@ class Network(object):
 
         model = Model(modelV3.input, output_tensor)
         return model
+
