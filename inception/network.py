@@ -1,4 +1,4 @@
-# This is a template for sample network
+# This is an implementation of InceptionV3
 from __future__ import print_function
 import keras
 from keras import layers, Input
@@ -10,25 +10,26 @@ class Network(object):
     def __init__(self, **kwargs): 
         pass
     
-    def get_network(self):
-        modelV3 = inception_v3.InceptionV3(include_top=False, weights='imagenet',
-                                           input_shape=(448, 448, 3), classes=128)
+    def get_network(self, options):
+    	if options.pretrained:
+        	modelV3 = inception_v3.InceptionV3(include_top=False, weights='imagenet',
+                                           input_shape=(448, 448, 3))
+        else:
+        	modelV3 = inception_v3.InceptionV3(include_top=False,
+                                           input_shape=(448, 448, 3))
         x = modelV3.output
         x = GlobalAveragePooling2D(name='avg_pool')(x)
         output_tensor = Dense(128, activation='softmax' name="predictions")(x)
-        model  = Model(modelV3.input, output_tensor)
-        unfreezeLayers = []
         
-        with open("unfreeze_layers", "r") as ins:            
-            for layer in ins:
-                layer=layer.replace('\n', '')
-                unfreezeLayers.append(layer)
-                
-        if len(unfreezeLayers) > 0:
-            for unfreeze in unfreezeLayers:
-                for layer in modelV3.layers:
-                    if layer.name.startsWith(unfreeze):
-                        layer.trainable = True
-                       
-        
+
+        if options.freeze_layers:
+            for layer in modelV3.layers:
+            	if any(map(layer.name.startwith, options.unfreeze_layers)):
+            		layer.trainable = True
+            	else:
+            		layer.trainable = False
+
+
+        model = Model(modelV3.input, output_tensor)
         return model
+
