@@ -1,0 +1,14 @@
+samplewise_center: True
+samplewise_std_normalization: True
+zca_whitening: False
+rotation_range: 30
+width_shift_range: 0.2
+height_shift_range: 0.2
+shear_range: 20
+zoom_range: 0.2
+channel_shift_range: 0
+fill_mode: nearest
+horizontal_flip: True
+vertical_flip: False
+rescale: 0
+data_format: channels_last

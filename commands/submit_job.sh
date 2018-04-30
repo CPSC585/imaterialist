@@ -5,10 +5,8 @@ function show_usage() {
     echo ""
     echo "Usage: $(basename $0) --gpu=<gpu> JOBCMD"
     echo ""
-    echo "   --gpu_count: Number of GPUS."
-    echo "                default: 1"
-    echo ""
-    echo "   JOBCMD: submit training job."
+    echo "   --gpu: specify number of GPUS."
+    echo "               default: 1"
     echo ""
     echo "   --help: Show this help message."
     echo ""
@@ -24,10 +22,10 @@ function main () {
         exit -1
     fi
 
-    CONTAINER=$(docker ps | grep "cpsc585/cluster" | awk '{print $1}')
+    CONTAINER=$(docker images | grep "cpsc585/train" | awk '{print $3}')
     GPUS=${gpu-1}
     shift;
-    nvidia-docker exec $CONTAINER srun --gres=gpu:$GPUS --output=$output $@ 
+    NV_GPU=$GPUS nvidia-docker run -u $(id -u "AD\vkrishnamani"):$(id -g "AD\vkrishnamani") -v $(pwd):/workspace $CONTAINER $@
 }
 
 if (( $# < 1 )); then
