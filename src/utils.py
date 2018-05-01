@@ -1,10 +1,13 @@
 from __future__ import print_function
 import os
+import sys
 import glob
 import yaml
 from shutil import copyfile
 import importlib
 
+CURSOR_UP_ONE = '\x1b[1A'
+ERASE_LINE = '\x1b[2K'
 
 def exists(p, msg):
     assert os.path.exists(p), msg
@@ -116,3 +119,25 @@ def get_saved_models(opts):
         files = glob.glob(os.path.join(opts.output_path, '*.hdf5'))
         files.sort(key=lambda x: float(os.path.basename(x).split("-")[1].replace(".hdf5", "").replace("val_loss=", "")))
         return files
+
+
+def get_models_eval(model):
+    files = glob.glob(os.path.join('trained_models', model, '*/*.hdf5'))
+    files.sort(key = lambda x: float(os.path.basename(x).split("-")[1].replace(".hdf5", "").replace("val_loss=", "")))
+    org_files = {}
+    for path in files:
+        exp_name = os.path.basename(os.path.dirname(path))
+        if not exp_name in org_files.keys():
+            org_files[exp_name] = [path]
+        else:
+            org_files[exp_name].append(path)
+    while True:
+        try:
+            for i, k in enumerate(org_files.keys()):
+                print ("\n{}. Best Model for Experiment {}".format(i+1, k))
+                print ("    {}".format(org_files[k][0]))
+            choice = raw_input("Model choice: ")
+            key = org_files.keys()[int(choice)-1]
+            return org_files[key][0]
+        except (ValueError, IndexError) as e:
+            print ("\n>>> Try Again...")
