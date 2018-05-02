@@ -131,13 +131,5 @@ def get_models_eval(model):
             org_files[exp_name] = [path]
         else:
             org_files[exp_name].append(path)
-    while True:
-        try:
-            for i, k in enumerate(org_files.keys()):
-                print ("\n{}. Best Model for Experiment {}".format(i+1, k))
-                print ("    {}".format(org_files[k][0]))
-            choice = raw_input("Model choice: ")
-            key = org_files.keys()[int(choice)-1]
-            return org_files[key][0]
-        except (ValueError, IndexError) as e:
-            print ("\n>>> Try Again...")
+    return [x[0] for x in org_files.values()]
+    
