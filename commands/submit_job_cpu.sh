@@ -19,6 +19,7 @@ function main () {
         exit -1
     fi
 
+    CONTAINER=$(docker images | grep "cpsc585/base" | awk '{print $3}')
     docker run -u $(id -u "AD\vkrishnamani"):$(id -g "AD\vkrishnamani") -v $(pwd):/workspace $CONTAINER $@
 }
 
